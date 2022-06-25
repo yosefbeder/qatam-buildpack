@@ -1,0 +1,55 @@
+#!/bin/sh
+
+BUILD_DIR=${1:-}
+CACHE_DIR=${2:-}
+
+# TODO add config files to edit these two
+RUST_VERSION=stable
+NODE_VERSION=18\
+
+export RUSTUP_HOME="$CACHE_DIR/multirust"
+export CARGO_HOME="$CACHE_DIR/cargo"
+export NVM_DIR="$CACHE_DIR/.nvm"
+
+PATH="$CARGO_HOME/bin:$PATH"
+
+mkdir -p "$CACHE_DIR"
+cd "$CACHE_DIR"
+
+if [ -d "$CARGO_HOME" ]; then
+  echo "-----> Checking for new releases of Rust $RUST_VERSION channel"
+  rustup self update
+  rustup update "$RUST_VERSION"
+  rustup default "$RUST_VERSION"
+else
+  echo "-----> Downloading rustup"
+  curl https://sh.rustup.rs -sSf > rustup.sh
+  chmod u+x rustup.sh
+  echo "-----> Using rustup to install Rust channel $RUST_VERSION"
+  ./rustup.sh -y --default-toolchain "$RUST_VERSION"
+  rm rustup.sh
+fi
+
+if [ ! -x "$CARGO_HOME/bin/rustc" ]; then
+  echo "failed: Cannot find Rust binaries at $CARGO_HOME"
+  exit 1
+fi
+
+if [ ! -d "$NVM_DIR" ]; then
+  echo "-----> Installing NVM"
+  mkdir $NVM_DIR
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+fi
+
+nvm install $NODE_VERSION
+
+echo "-----> Building the lang"
+
+cd $BUILD_DIR
+cargo build --release
+
+echo "-----> Building the site"
+
+cd www
+npm run build
+cargo build --release

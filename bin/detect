@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "I assume you know what you're to do..."
+exit 0
