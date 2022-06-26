@@ -5,7 +5,7 @@ CACHE_DIR=${2:-}
 
 # TODO add config files to edit these two
 RUST_VERSION=stable
-NODE_VERSION=18\
+NODE_VERSION=18
 
 export RUSTUP_HOME="$CACHE_DIR/multirust"
 export CARGO_HOME="$CACHE_DIR/cargo"
@@ -46,14 +46,18 @@ fi
 
 nvm install $NODE_VERSION
 
-echo "-----> Building the lang"
+echo "-----> Building..."
+
 cd $BUILD_DIR
-cargo build --release
 
-echo "-----> `npm install`"
-cd www
+export CARGO_TARGET_DIR="$CACHE_DIR/target"
+cargo build --release --bin قتام
+cp -ar $CARGO_TARGET_DIR .
+
+export CARGO_TARGET_DIR="$CACHE_DIR/www-target"
+cargo build --release --bin www
+cp -ar $CARGO_TARGET_DIR .
+
+cd www/public
 npm install
-
-echo "-----> Building the site"
 npm run build
-cargo build --release
