@@ -58,6 +58,11 @@ export CARGO_TARGET_DIR="$CACHE_DIR/www-target"
 cargo build --release --bin www
 cp -ar $CARGO_TARGET_DIR .
 
-cd www/public
+cd scripts/build-site
 npm install
-npm run build
+
+cd ../../www/public
+npm install
+
+cd ../..
+node scripts/build-site
